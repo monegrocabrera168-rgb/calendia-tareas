@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distribución de Tareas del Hogar</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --card: #21253a;
+    --accent: #6c8fff;
+    --accent2: #ff7eb3;
+    --accent3: #4ecdc4;
+    --yellow: #ffd166;
+    --text: #e8eaf6;
+    --muted: #7b82a8;
+    --border: #2e3354;
+
+    --jose: #6c8fff;
+    --amauris: #4ecdc4;
+    --fernando: #ff9a6c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--jose), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* Leyenda personas */
+  .personas {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .persona-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Nav días */
+  .dias-nav {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .dia-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-size: 0.8rem;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .dia-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .dia-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .dia-btn.domingo { }
+  .dia-btn.domingo.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+  }
+
+  /* Tarjeta del día */
+  .dia-card {
+    max-width: 680px;
+    margin: 0 auto;
+    display: none;
+  }
+  .dia-card.visible { display: block; }
+
+  .dia-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .dia-icon {
+    font-size: 1.6rem;
+  }
+
+  .dia-titulo {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .dia-subtitle {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+
+  /* Sección de tareas */
+  .seccion {
+    margin-bottom: 18px;
+  }
+
+  .seccion-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .tarea-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .tarea-row:hover { border-color: #3a3f60; }
+
+  .tarea-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tarea-emoji { font-size: 1.15rem; }
+
+  .tarea-nombre {
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+
+  .tarea-nota {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .persona-chip {
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-family: 'Sora', sans-serif;
+    white-space: nowrap;
+  }
+
+  .chip-jose { background: rgba(108,143,255,0.15); color: var(--jose); border: 1px solid rgba(108,143,255,0.3); }
+  .chip-amauris { background: rgba(78,205,196,0.15); color: var(--amauris); border: 1px solid rgba(78,205,196,0.3); }
+  .chip-fernando { background: rgba(255,154,108,0.15); color: var(--fernando); border: 1px solid rgba(255,154,108,0.3); }
+
+  /* Resumen semanal */
+  .resumen {
+    max-width: 680px;
+    margin: 32px auto 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .resumen h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--yellow);
+  }
+
+  .resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .resumen-persona {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .resumen-persona h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .resumen-persona ul {
+    list-style: none;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .resumen-persona ul li::before {
+    content: "· ";
+    color: var(--accent);
+  }
+
+  /* Restricciones */
+  .restricciones {
+    max-width: 680px;
+    margin: 16px auto 0;
+    background: rgba(255,126,179,0.06);
+    border: 1px solid rgba(255,126,179,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .restricciones strong { color: var(--accent2); }
+
+  @media (max-width: 480px) {
+    .resumen-grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 Tareas del Hogar</h1>
+  <p>Distribución semanal · José Manuel · Amauris · Fernando</p>
+</header>
+
+<div class="personas">
+  <div class="persona-badge"><div class="dot" style="background:var(--jose)"></div>José Manuel</div>
+  <div class="persona-badge"><div class="dot" style="background:var(--amauris)"></div>Amauris</div>
+  <div class="persona-badge"><div class="dot" style="background:var(--fernando)"></div>Fernando</div>
+</div>
+
+<div class="dias-nav">
+  <button class="dia-btn active" onclick="mostrarDia('lunes', this)">Lun</button>
+  <button class="dia-btn" onclick="mostrarDia('martes', this)">Mar</button>
+  <button class="dia-btn" onclick="mostrarDia('miercoles', this)">Mié</button>
+  <button class="dia-btn" onclick="mostrarDia('jueves', this)">Jue</button>
+  <button class="dia-btn" onclick="mostrarDia('viernes', this)">Vie</button>
+  <button class="dia-btn" onclick="mostrarDia('sabado', this)">Sáb</button>
+  <button class="dia-btn domingo" onclick="mostrarDia('domingo', this)">Dom</button>
+</div>
+
+<!-- LUNES -->
+<div class="dia-card visible" id="dia-lunes">
+  <div class="dia-header">
+    <div class="dia-icon">🌅</div>
+    <div>
+      <div class="dia-titulo">Lunes</div>
+      <div class="dia-subtitle">Inicio de semana · Día de basura</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧹 Otras tareas</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🗑️</span><div><div class="tarea-nombre">Botar basura</div><div class="tarea-nota">Día de recogida</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🧹</span><div><div class="tarea-nombre">Barrer</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛋️</span><div><div class="tarea-nombre">Arreglar salas</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+  </div>
+</div>
+
+<!-- MARTES -->
+<div class="dia-card" id="dia-martes">
+  <div class="dia-header">
+    <div class="dia-icon">📅</div>
+    <div>
+      <div class="dia-titulo">Martes</div>
+      <div class="dia-subtitle">Día tranquilo · Sin basura</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧹 Otras tareas</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛏️</span><div><div class="tarea-nombre">Arreglar habitaciones</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+  </div>
+</div>
+
+<!-- MIÉRCOLES -->
+<div class="dia-card" id="dia-miercoles">
+  <div class="dia-header">
+    <div class="dia-icon">⛅</div>
+    <div>
+      <div class="dia-titulo">Miércoles</div>
+      <div class="dia-subtitle">Mitad de semana · Día de basura</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧹 Otras tareas</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🗑️</span><div><div class="tarea-nombre">Botar basura</div><div class="tarea-nota">Día de recogida</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🧹</span><div><div class="tarea-nombre">Barrer</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛋️</span><div><div class="tarea-nombre">Arreglar salas</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+  </div>
+</div>
+
+<!-- JUEVES -->
+<div class="dia-card" id="dia-jueves">
+  <div class="dia-header">
+    <div class="dia-icon">🌤️</div>
+    <div>
+      <div class="dia-titulo">Jueves</div>
+      <div class="dia-subtitle">Día tranquilo · Sin basura</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧹 Otras tareas</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛏️</span><div><div class="tarea-nombre">Arreglar habitaciones</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+  </div>
+</div>
+
+<!-- VIERNES -->
+<div class="dia-card" id="dia-viernes">
+  <div class="dia-header">
+    <div class="dia-icon">🎉</div>
+    <div>
+      <div class="dia-titulo">Viernes</div>
+      <div class="dia-subtitle">Cierre de semana · Día de basura</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧹 Otras tareas</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🗑️</span><div><div class="tarea-nombre">Botar basura</div><div class="tarea-nota">Día de recogida</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🧹</span><div><div class="tarea-nombre">Barrer</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛏️</span><div><div class="tarea-nombre">Arreglar habitaciones</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+  </div>
+</div>
+
+<!-- SÁBADO -->
+<div class="dia-card" id="dia-sabado">
+  <div class="dia-header">
+    <div class="dia-icon">🧽</div>
+    <div>
+      <div class="dia-titulo">Sábado</div>
+      <div class="dia-subtitle">Limpieza profunda · Baños + Trapear</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🧼 Limpieza profunda</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🚿</span><div><div class="tarea-nombre">Limpiar baño</div><div class="tarea-nota">Solo sábados</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🫧</span><div><div class="tarea-nombre">Trapear (swapear)</div><div class="tarea-nota">Solo sábados</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🧹</span><div><div class="tarea-nombre">Barrer</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🛋️</span><div><div class="tarea-nombre">Arreglar salas</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+  </div>
+</div>
+
+<!-- DOMINGO -->
+<div class="dia-card" id="dia-domingo">
+  <div class="dia-header">
+    <div class="dia-icon">😌</div>
+    <div>
+      <div class="dia-titulo">Domingo</div>
+      <div class="dia-subtitle">Descanso · Solo fregado</div>
+    </div>
+  </div>
+
+  <div class="seccion">
+    <div class="seccion-label">🍽️ Fregado (único deber del día)</div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">☀️</span><div><div class="tarea-nombre">Fregado mañana</div></div></div>
+      <span class="persona-chip chip-amauris">Amauris</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌤️</span><div><div class="tarea-nombre">Fregado tarde</div></div></div>
+      <span class="persona-chip chip-fernando">Fernando</span>
+    </div>
+    <div class="tarea-row">
+      <div class="tarea-info"><span class="tarea-emoji">🌙</span><div><div class="tarea-nombre">Fregado noche</div></div></div>
+      <span class="persona-chip chip-jose">José Manuel</span>
+    </div>
+  </div>
+
+  <div style="background:rgba(78,205,196,0.08); border:1px solid rgba(78,205,196,0.2); border-radius:10px; padding:12px 16px; font-size:0.82rem; color:var(--muted); margin-top:8px;">
+    🎊 <strong style="color:var(--accent3)">Día de descanso</strong> — Nada más que fregar. ¡A descansar!
+  </div>
+</div>
+
+<!-- Resumen semanal -->
+<div class="resumen">
+  <h2>📊 Resumen semanal por persona</h2>
+  <div class="resumen-grid">
+    <div class="resumen-persona">
+      <h3 style="color:var(--jose)">José Manuel</h3>
+      <ul>
+        <li>Fregado: mar/jue/dom (tarde o noche)</li>
+        <li>Sin fregado lun, vie ni sáb</li>
+        <li>Basura: miércoles</li>
+        <li>Limpiar baño: sábado</li>
+        <li>Barrer: lunes</li>
+        <li>Habitaciones: jueves</li>
+        <li>Salas: sábado</li>
+      </ul>
+    </div>
+    <div class="resumen-persona">
+      <h3 style="color:var(--amauris)">Amauris</h3>
+      <ul>
+        <li>Fregado: lun/mié/sáb/dom + rotación</li>
+        <li>Basura: lunes y viernes</li>
+        <li>Trapear: sábado</li>
+        <li>Barrer: miércoles y viernes</li>
+        <li>Habitaciones: martes</li>
+        <li>Salas: miércoles</li>
+      </ul>
+    </div>
+    <div class="resumen-persona">
+      <h3 style="color:var(--fernando)">Fernando</h3>
+      <ul>
+        <li>Fregado: lun/vie + rotación general</li>
+        <li>Sin basura ni baños</li>
+        <li>Barrer: sábado</li>
+        <li>Habitaciones: viernes</li>
+        <li>Salas: lunes</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="restricciones">
+  ⚠️ <strong>Restricciones aplicadas:</strong>
+  José Manuel no frieg lo
