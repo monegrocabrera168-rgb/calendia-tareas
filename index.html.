@@ -624,4 +624,17 @@
 
 <div class="restricciones">
   ⚠️ <strong>Restricciones aplicadas:</strong>
-  José Manuel no frieg lo
+  José Manuel no friega los lunes, viernes ni sábados · José Manuel sin tareas en la mañana ningún día · Fernando no bota basura ni lava baños · Basura solo lun/mié/vie · Baños y trapeo solo sábados · Barrer días alternos · Domingos solo fregado
+</div>
+
+<script>
+  function mostrarDia(dia, btn) {
+    document.querySelectorAll('.dia-card').forEach(c => c.classList.remove('visible'));
+    document.querySelectorAll('.dia-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('dia-' + dia).classList.add('visible');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
